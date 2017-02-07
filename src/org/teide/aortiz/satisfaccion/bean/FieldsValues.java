@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.teide.aortiz.satisfaccion;
+package org.teide.aortiz.satisfaccion.bean;
 
 /**
  *
@@ -31,6 +31,14 @@ public interface FieldsValues {
     public static String WOMAN_VALUE = "2";
     public static final int CENTER_VALUES = 6;
     public static final int STUDENT_VALUES = 4;
+    
+    public static final int[] NAME_CORDS = {2,1};
+    public static final int[] DATE_CORDS = {2,11};
+    public static final int[] MAN_CORDS = {4,1};
+    public static final int[] WOMAN_CORDS = {4,8};
+    public static final int[] PEOPLE_CORDS = {6,7};
+    public static final int[] START_USER_RESP = {12,1};
+    //public static final int[]
     
     
     

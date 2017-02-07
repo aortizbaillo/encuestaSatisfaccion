@@ -5,6 +5,9 @@
  */
 package org.teide.aortiz.satisfaccion;
 
+import org.teide.aortiz.satisfaccion.bean.FieldsValues;
+import org.teide.aortiz.satisfaccion.bean.DataBean;
+import org.teide.aortiz.satisfaccion.bean.DataOrderBean;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,15 +15,23 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import jxl.Workbook;
+import jxl.WorkbookSettings;
+import jxl.read.biff.BiffException;
+import jxl.write.Blank;
+import jxl.write.Label;
+import jxl.write.WritableSheet;
+import jxl.write.Number;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
+import org.teide.aortiz.satisfaccion.bean.CourseBean;
 
 /**
  *
  * @author antonio
  */
 public class Satisfaccion {
-    
-    private String date, name;
-    
+        
     /**
      * @param args the command line arguments
      */
@@ -28,24 +39,10 @@ public class Satisfaccion {
         try {
             // TODO code application logic here
             Satisfaccion s = new Satisfaccion();
-            ArrayList<DataBean> al = s.obtainResults("/Users/antonio/Downloads/encuestas2/1EI.txt");
-            for (DataBean dataBean : al) {
-                for (String string : dataBean.getResp()) {
-                    System.out.print(string+" ");
-                }
-                System.out.println("");
-                for (String string : dataBean.getKnow()) {
-                    System.out.print(string+" ");
-                }
-                System.out.println("");
-                System.out.println("SEX: "+dataBean.getSex());
-                for (String string : dataBean.getOpinion()) {
-                    System.out.print(string+ " ");
-                }
-                System.out.println("");
-            }
-            System.out.println("Nombre: "+s.name);
-            System.out.println("Fecha: "+s.date);
+            s.obtainResults("/Users/antonio/Downloads/encuestas2/1EI.txt", 
+                    "/Users/antonio/Downloads/GENERICA_v2016.xls",
+                    "/Users/antonio/Downloads/encuestas2/resultado/resultado.xls");
+            
         } catch (Exception ex) {
             System.out.println("Error: "+ex.getMessage());
             ex.printStackTrace();
@@ -59,11 +56,13 @@ public class Satisfaccion {
      * @throws FileNotFoundException
      * @throws IOException 
      */
-    private ArrayList<DataBean> obtainResults (String inputCSVfilename) throws FileNotFoundException, IOException {
+    private void obtainResults (String inputCSVfilename, String inputXLSfilename, String outputXLSfilename) throws FileNotFoundException, IOException {
+        CourseBean cb = new CourseBean();
         ArrayList<DataBean> al = new ArrayList<>();
         BufferedReader br = new BufferedReader(new FileReader(new File(inputCSVfilename)));
         String line;
         boolean obtainDateAndName = true;
+        String name = null, date = null;
         
         //La primera línea no hace falta que la leamos porque lleva las cabeceras
         br.readLine();
@@ -90,10 +89,12 @@ public class Satisfaccion {
             al.add(db);
         }
         
-        //Prueba impresión
-        transformAll(al);
+        cb.setDate(date);
+        cb.setName(name);
+        cb.setList(al);
         
-        return al;
+        //Prueba impresión
+        transformAll(cb, inputXLSfilename, outputXLSfilename);
     }
     
     /**
@@ -205,14 +206,14 @@ public class Satisfaccion {
      * Transforma todas las respuestas en los valores necesarios para su paso a la Excel
      * @param values listado de valores de los usuarios
      */
-    private void transformAll (ArrayList<DataBean> values) {
+    private void transformAll (CourseBean cb, String inputXLSfilename, String outputXLSfilename) {
         int[][] userResp = new int[FieldsValues.USER_VALUES_ROWS][FieldsValues.USER_VALUES_COLS];
         int[] sex = new int[2];
         int[] centerKnow = new int[FieldsValues.CENTER_VALUES];
         int[] studentKnow = new int[FieldsValues.STUDENT_VALUES];
         ArrayList<DataOrderBean> alBetter = new ArrayList<>();
         ArrayList<DataOrderBean> alPlease = new ArrayList<>();
-        for (DataBean value : values) {
+        for (DataBean value : cb.getList()) {
             transformResp(userResp, value.getResp());
             transformSex(sex, value.getSex());
             transformKnow(centerKnow, studentKnow, value.getKnow());
@@ -248,6 +249,54 @@ public class Satisfaccion {
         for (DataOrderBean dataOrderBean : alPlease) {
             System.out.println(dataOrderBean.getResp()+" - "+dataOrderBean.getnResp());
         }
+        
+        //Escribimos en la excel
+        try {
+            exportExcel(userResp, sex, centerKnow, studentKnow, cb.getDate(), cb.getName(), inputXLSfilename, outputXLSfilename);
+        }
+        catch (Exception e) {
+            System.out.println("Error: "+e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    private void exportExcel (int[][] userResp, int[] sex, int[] centerKnow, int[] studentKnow, String date, String name,
+            String inputXLSfilename, String outputXLSfilename) throws IOException, BiffException, WriteException {
+        WorkbookSettings ws = new WorkbookSettings(); 
+        ws.setEncoding("iso-8859-1");
+        System.out.println("Input: "+inputXLSfilename);
+        System.out.println("Salida: "+outputXLSfilename);
+        Workbook inputXLS = Workbook.getWorkbook(new File(inputXLSfilename),ws); 
+        WritableWorkbook outputXLS = Workbook.createWorkbook(new File(outputXLSfilename), inputXLS);
+        
+        //Depositamos los valores en la segunda hoja
+        WritableSheet sheet = outputXLS.getSheet(1);
+        
+        //Escribimos nombre del ciclo y fecha
+        ((Label)sheet.getWritableCell(FieldsValues.NAME_CORDS[1],FieldsValues.NAME_CORDS[0])).setString(name);
+        ((Label)sheet.getWritableCell(FieldsValues.DATE_CORDS[1],FieldsValues.DATE_CORDS[0])).setString(date);
+        
+        //Escribimos número de hombres, mujeres y total de encuestados
+        ((Number)sheet.getWritableCell(FieldsValues.MAN_CORDS[1],FieldsValues.MAN_CORDS[0])).setValue(sex[0]);
+        ((Number)sheet.getWritableCell(FieldsValues.WOMAN_CORDS[1],FieldsValues.WOMAN_CORDS[0])).setValue(sex[1]);
+        ((Number)sheet.getWritableCell(FieldsValues.PEOPLE_CORDS[1],FieldsValues.PEOPLE_CORDS[0])).setValue(sex[0]+sex[1]);
+        
+        //Escribimos las respuestas de los clientes
+        int row = FieldsValues.START_USER_RESP[0], col = FieldsValues.START_USER_RESP[1];
+        for (int i = 0; i < userResp.length; i++) {
+            for (int j = 0; j < userResp[i].length-2; j++) {
+                ((Number)sheet.getWritableCell(col+j,row+i)).setValue(userResp[i][j]);
+            }
+        }
+        
+        //Escribimos cómo nos ha conocido y como es como estudiante
+        ((Number)sheet.getWritableCell(FieldsValues.MAN_CORDS[1],FieldsValues.MAN_CORDS[0])).setValue(sex[0]);
+        ((Number)sheet.getWritableCell(FieldsValues.MAN_CORDS[1],FieldsValues.MAN_CORDS[0])).setValue(sex[0]);
+        
+        
+        outputXLS.write(); 
+        outputXLS.close();
+        inputXLS.close();
     }
     
 }
