@@ -18,6 +18,7 @@ public class DataOrderBean implements Comparable<DataOrderBean>{
 
     public DataOrderBean(String resp) {
         this.resp = resp;
+        this.nResp = 1;
     }
 
     public String getResp() {
@@ -42,15 +43,18 @@ public class DataOrderBean implements Comparable<DataOrderBean>{
 
     @Override
     public int compareTo(DataOrderBean o) {
-        if (nResp > o.getnResp()) return 1;
-        else if (nResp < o.getnResp()) return -1;
+        if (nResp > o.getnResp()) return -1;
+        else if (nResp < o.getnResp()) return 1;
         else return 0;
     }
 
     @Override
     public boolean equals(Object obj) {
-        DataOrderBean dob = (DataOrderBean) obj;
-        return resp.equals(dob.getnResp());
+        if (obj != null) {
+            DataOrderBean dob = (DataOrderBean) obj;
+            if (dob.getResp()!= null) return resp.equals(dob.getResp());
+        }
+        return false;
     }
     
 }

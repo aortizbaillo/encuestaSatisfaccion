@@ -15,10 +15,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
 import jxl.read.biff.BiffException;
-import jxl.write.Blank;
 import jxl.write.Label;
 import jxl.write.WritableSheet;
 import jxl.write.Number;
@@ -35,11 +35,12 @@ public class Satisfaccion {
     /**
      * @param args the command line arguments
      */
+    /*
     public static void main(String[] args) {
         try {
             // TODO code application logic here
             Satisfaccion s = new Satisfaccion();
-            s.obtainResults("/Users/antonio/Downloads/encuestas2/1EI.txt", 
+            s.obtainResults("/Users/antonio/Downloads/encuestas2/2EI.txt", 
                     "/Users/antonio/Downloads/GENERICA_v2016.xls",
                     "/Users/antonio/Downloads/encuestas2/resultado/resultado.xls");
             
@@ -47,16 +48,19 @@ public class Satisfaccion {
             System.out.println("Error: "+ex.getMessage());
             ex.printStackTrace();
         }
-    }
+    }*/
     
     /**
      * Este método obtiene los resultados de cada alumnos, devolverá un listado de tipo DataBean por cada alumno
      * @param inputCSVfilename ruta completa del fichero CVS extraído de Moodle
-     * @return el listado de valores de los usuarios de un curso
+     * @param inputXLSfilename ruta al fichero de entrada Excel que servirá de copia
+     * @param outputXLSfilename ruta completa al fichero que se generará
      * @throws FileNotFoundException
      * @throws IOException 
+     * @throws jxl.read.biff.BiffException 
+     * @throws jxl.write.WriteException 
      */
-    private void obtainResults (String inputCSVfilename, String inputXLSfilename, String outputXLSfilename) throws FileNotFoundException, IOException {
+    public void obtainResults (String inputCSVfilename, String inputXLSfilename, String outputXLSfilename) throws FileNotFoundException, IOException, BiffException, WriteException {
         CourseBean cb = new CourseBean();
         ArrayList<DataBean> al = new ArrayList<>();
         BufferedReader br = new BufferedReader(new FileReader(new File(inputCSVfilename)));
@@ -188,14 +192,14 @@ public class Satisfaccion {
         for (int i = 0; i < resp.length; i++) {
             //Aspectos a mejorar
             if (i<3) {
-                if (!resp[i].trim().isEmpty()) {
-                    if (userValuesBetter.contains(resp[i].trim())) userValuesBetter.get(userValuesBetter.indexOf(resp[i].trim())).increment();
+                if (resp[i]!= null && !resp[i].trim().isEmpty()) {
+                    if (userValuesBetter.contains(new DataOrderBean(resp[i].trim()))) userValuesBetter.get(userValuesBetter.indexOf(new DataOrderBean(resp[i].trim()))).increment();
                     else userValuesBetter.add(new DataOrderBean(resp[i].trim()));
                 }
             }
             else {
-                if (!resp[i].trim().isEmpty()) {
-                    if (userValuesPlease.contains(resp[i].trim())) userValuesPlease.get(userValuesPlease.indexOf(resp[i].trim())).increment();
+                if (resp[i]!= null && !resp[i].trim().isEmpty()) {
+                    if (userValuesPlease.contains(new DataOrderBean(resp[i].trim()))) userValuesPlease.get(userValuesPlease.indexOf(new DataOrderBean(resp[i].trim()))).increment();
                     else userValuesPlease.add(new DataOrderBean(resp[i].trim()));
                 }
             }
@@ -206,7 +210,7 @@ public class Satisfaccion {
      * Transforma todas las respuestas en los valores necesarios para su paso a la Excel
      * @param values listado de valores de los usuarios
      */
-    private void transformAll (CourseBean cb, String inputXLSfilename, String outputXLSfilename) {
+    private void transformAll (CourseBean cb, String inputXLSfilename, String outputXLSfilename) throws IOException, BiffException, WriteException {
         int[][] userResp = new int[FieldsValues.USER_VALUES_ROWS][FieldsValues.USER_VALUES_COLS];
         int[] sex = new int[2];
         int[] centerKnow = new int[FieldsValues.CENTER_VALUES];
@@ -221,6 +225,7 @@ public class Satisfaccion {
         }
         
         //Imprimimos
+        /*
         for (int i = 0; i < userResp.length; i++) {
             for (int j = 0; j < userResp[i].length; j++) {
                 System.out.print(userResp[i][j]+" ");
@@ -249,23 +254,33 @@ public class Satisfaccion {
         for (DataOrderBean dataOrderBean : alPlease) {
             System.out.println(dataOrderBean.getResp()+" - "+dataOrderBean.getnResp());
         }
+        */
         
         //Escribimos en la excel
-        try {
-            exportExcel(userResp, sex, centerKnow, studentKnow, cb.getDate(), cb.getName(), inputXLSfilename, outputXLSfilename);
-        }
-        catch (Exception e) {
-            System.out.println("Error: "+e.getMessage());
-            e.printStackTrace();
-        }
+        exportExcel(userResp, sex, centerKnow, studentKnow, alBetter, alPlease, cb.getDate(), cb.getName(), inputXLSfilename, outputXLSfilename);
     }
     
-    private void exportExcel (int[][] userResp, int[] sex, int[] centerKnow, int[] studentKnow, String date, String name,
+    /**
+     * Permite escribir todos los valores en la Excel
+     * @param userResp representa las respuestas de los usuarios
+     * @param sex representa los sexos de los usuarios
+     * @param centerKnow representa cómo han conocido el centro los usuarios
+     * @param studentKnow representa cómo se consideran como estudiantes los usuarios
+     * @param alBetter representan los aspectos que le gustan
+     * @param alPlease representan los aspectos a mejorar
+     * @param date repreenta la fecha de la encuesta
+     * @param name representa el nombre del grupo
+     * @param inputXLSfilename representa el fichero Excel de entrada que servidrá de copia
+     * @param outputXLSfilename representa el fichero Excel de salida que se generará
+     * @throws IOException
+     * @throws BiffException
+     * @throws WriteException 
+     */
+    private void exportExcel (int[][] userResp, int[] sex, int[] centerKnow, int[] studentKnow,  ArrayList<DataOrderBean> alBetter, 
+             ArrayList<DataOrderBean> alPlease, String date, String name,
             String inputXLSfilename, String outputXLSfilename) throws IOException, BiffException, WriteException {
         WorkbookSettings ws = new WorkbookSettings(); 
         ws.setEncoding("iso-8859-1");
-        System.out.println("Input: "+inputXLSfilename);
-        System.out.println("Salida: "+outputXLSfilename);
         Workbook inputXLS = Workbook.getWorkbook(new File(inputXLSfilename),ws); 
         WritableWorkbook outputXLS = Workbook.createWorkbook(new File(outputXLSfilename), inputXLS);
         
@@ -290,10 +305,38 @@ public class Satisfaccion {
         }
         
         //Escribimos cómo nos ha conocido y como es como estudiante
-        ((Number)sheet.getWritableCell(FieldsValues.MAN_CORDS[1],FieldsValues.MAN_CORDS[0])).setValue(sex[0]);
-        ((Number)sheet.getWritableCell(FieldsValues.MAN_CORDS[1],FieldsValues.MAN_CORDS[0])).setValue(sex[0]);
+        row = FieldsValues.CENTER_KNOW[0];
+        col = FieldsValues.CENTER_KNOW[1];
+        for (int i = 0; i < centerKnow.length; i++) {
+            ((Number)sheet.getWritableCell(col,row+i)).setValue(centerKnow[i]);
+        }
+        row = FieldsValues.STUDENT_KNOW[0];
+        col = FieldsValues.STUDENT_KNOW[1];
+        for (int i = 0; i < studentKnow.length; i++) {
+            ((Number)sheet.getWritableCell(col,row+i)).setValue(studentKnow[i]);
+        }     
         
-        
+        //Por último escribimos las preguntas abiertas
+        row = FieldsValues.BETTER_OPINION[0];
+        col = FieldsValues.BETTER_OPINION[1];
+        int rowN = FieldsValues.BETTER_OPINION_COUNT[0];
+        int colN = FieldsValues.BETTER_OPINION_COUNT[1];
+        Collections.sort(alBetter);
+        for (int i = 0; i < alBetter.size() && i < FieldsValues.N_MAX_OPINION; i++) {
+            ((Label)sheet.getWritableCell(col,row+i)).setString(alBetter.get(i).getResp());
+            ((Number)sheet.getWritableCell(colN,rowN+i)).setValue(alBetter.get(i).getnResp());
+        }
+        row = FieldsValues.PLEASE_OPINION[0];
+        col = FieldsValues.PLEASE_OPINION[1];
+        rowN = FieldsValues.PLEASE_OPINION_COUNT[0];
+        colN = FieldsValues.PLEASE_OPINION_COUNT[1];
+        Collections.sort(alPlease);
+        for (int i = 0; i < alPlease.size() && i < FieldsValues.N_MAX_OPINION; i++) {
+            ((Label)sheet.getWritableCell(col,row+i)).setString(alPlease.get(i).getResp());
+            ((Number)sheet.getWritableCell(colN,rowN+i)).setValue(alPlease.get(i).getnResp());
+        }
+       
+        //Escribimos todos los valores en la Excel    
         outputXLS.write(); 
         outputXLS.close();
         inputXLS.close();

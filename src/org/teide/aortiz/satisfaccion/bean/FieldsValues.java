@@ -38,8 +38,11 @@ public interface FieldsValues {
     public static final int[] WOMAN_CORDS = {4,8};
     public static final int[] PEOPLE_CORDS = {6,7};
     public static final int[] START_USER_RESP = {12,1};
-    //public static final int[]
-    
-    
-    
+    public static final int[] CENTER_KNOW = {36,6};
+    public static final int[] STUDENT_KNOW = {44,5};
+    public static final int[] BETTER_OPINION = {54,0};
+    public static final int[] BETTER_OPINION_COUNT = {54,12};
+    public static final int[] PLEASE_OPINION = {76,0};
+    public static final int[] PLEASE_OPINION_COUNT = {76,12};
+    public static final int N_MAX_OPINION = 15; 
 }
