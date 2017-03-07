@@ -39,7 +39,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
-                              <Component id="jTextFieldExcelGenerica" max="32767" attributes="0"/>
+                              <Component id="jTextFieldExcelGenerica" pref="428" max="32767" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="jButtonExcelGenerica" min="-2" max="-2" attributes="0"/>
                           </Group>
@@ -103,9 +103,6 @@
       </Events>
     </Component>
     <Component class="javax.swing.JTextField" name="jTextFieldExcelGenerica">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="/Users/antonio/Downloads/GENERICA_v2016.xls"/>
-      </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTextFieldExcelGenericaActionPerformed"/>
       </Events>
@@ -116,9 +113,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="jTextFieldCarpetaCSVs">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="/Users/antonio/Downloads/encuestas2"/>
-      </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="jButtonCarpetaCSVs">
       <Properties>
@@ -134,9 +128,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="jTextFieldCarpetaDestino">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="/Users/antonio/Downloads/encuestas2/resultado"/>
-      </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="jButtonCarpetaDestino">
       <Properties>

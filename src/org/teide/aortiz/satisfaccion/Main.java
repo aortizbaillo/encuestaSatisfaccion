@@ -54,7 +54,6 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
-        jTextFieldExcelGenerica.setText("/Users/antonio/Downloads/GENERICA_v2016.xls");
         jTextFieldExcelGenerica.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextFieldExcelGenericaActionPerformed(evt);
@@ -62,8 +61,6 @@ public class Main extends javax.swing.JFrame {
         });
 
         jLabelCarpetaCSVs.setText("Carpeta CSVs");
-
-        jTextFieldCarpetaCSVs.setText("/Users/antonio/Downloads/encuestas2");
 
         jButtonCarpetaCSVs.setText("Buscar");
         jButtonCarpetaCSVs.addActionListener(new java.awt.event.ActionListener() {
@@ -73,8 +70,6 @@ public class Main extends javax.swing.JFrame {
         });
 
         jLabelCarpetaDestino.setText("Carpeta Destino");
-
-        jTextFieldCarpetaDestino.setText("/Users/antonio/Downloads/encuestas2/resultado");
 
         jButtonCarpetaDestino.setText("Buscar");
         jButtonCarpetaDestino.addActionListener(new java.awt.event.ActionListener() {
@@ -108,15 +103,15 @@ public class Main extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jTextFieldExcelGenerica)
+                                .addComponent(jTextFieldExcelGenerica, javax.swing.GroupLayout.DEFAULT_SIZE, 428, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButtonExcelGenerica))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jTextFieldCarpetaCSVs, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+                                .addComponent(jTextFieldCarpetaCSVs)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButtonCarpetaCSVs))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jTextFieldCarpetaDestino, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+                                .addComponent(jTextFieldCarpetaDestino, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButtonCarpetaDestino)))))
                 .addContainerGap())
