@@ -75,7 +75,7 @@ public class Satisfaccion {
             //Para el primer alumno obtendremos la fecha y el nombre del grupo
             if (obtainDateAndName) {
                 date = results[FieldsValues.DATE_FIELD].split(" ")[0];
-                name = results[FieldsValues.NAME_FIELD];
+                name = new File(inputCSVfilename).getName().split("\\.")[0];
                 obtainDateAndName = false;
             }
             //Obtenemos todos las respuestas del usuario
