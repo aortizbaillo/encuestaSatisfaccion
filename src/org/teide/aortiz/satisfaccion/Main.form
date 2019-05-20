@@ -103,6 +103,9 @@
       </Events>
     </Component>
     <Component class="javax.swing.JTextField" name="jTextFieldExcelGenerica">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="/Users/antonio/Downloads/GENERICA_v2018_WEB.xls"/>
+      </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTextFieldExcelGenericaActionPerformed"/>
       </Events>
@@ -113,6 +116,9 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="jTextFieldCarpetaCSVs">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="/Users/antonio/Downloads/datos2"/>
+      </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="jButtonCarpetaCSVs">
       <Properties>
@@ -128,6 +134,9 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="jTextFieldCarpetaDestino">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="/Users/antonio/Downloads/generados"/>
+      </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="jButtonCarpetaDestino">
       <Properties>

@@ -31,6 +31,8 @@ import org.teide.aortiz.satisfaccion.bean.CourseBean;
  * @author antonio
  */
 public class Satisfaccion {
+    
+    public static final String CARACTER_CORTE = ",";
         
     /**
      * @param args the command line arguments
@@ -71,10 +73,10 @@ public class Satisfaccion {
         //La primera línea no hace falta que la leamos porque lleva las cabeceras
         br.readLine();
         while ((line=br.readLine())!=null) {
-            String[] results = line.split("\t");
+            String[] results = line.split(CARACTER_CORTE);
             //Para el primer alumno obtendremos la fecha y el nombre del grupo
             if (obtainDateAndName) {
-                date = results[FieldsValues.DATE_FIELD].split(" ")[0];
+                date = results[FieldsValues.DATE_FIELD].split(CARACTER_CORTE)[0];
                 name = new File(inputCSVfilename).getName().split("\\.")[0];
                 obtainDateAndName = false;
             }
@@ -146,16 +148,19 @@ public class Satisfaccion {
     private void transformResp (int[][] userValues, String[] resp) {
         int row = 0;
         for (int i=0;i<resp.length;i++) {
-            if (i%2==0) {
-                //Escribimos la satisfacción
-                userValues[row][FieldsValues.SATISFACTION_COLS[Integer.parseInt(resp[i])]]++;
-                userValues[row][FieldsValues.SATISFACTION_COL]++;
+            try {
+                if (i%2==0) {
+                    //Escribimos la satisfacción
+                    userValues[row][FieldsValues.SATISFACTION_COLS[Integer.parseInt(resp[i])]]++;
+                    userValues[row][FieldsValues.SATISFACTION_COL]++;
+                }
+                else {
+                    //Escribimos la importancia
+                    userValues[row][FieldsValues.IMPORTANCE_COLS[Integer.parseInt(resp[i])]]++;
+                    userValues[row++][FieldsValues.IMPORTANCE_COL]++;
+                }
             }
-            else {
-                //Escribimos la importancia
-                userValues[row][FieldsValues.IMPORTANCE_COLS[Integer.parseInt(resp[i])]]++;
-                userValues[row++][FieldsValues.IMPORTANCE_COL]++;
-            }
+            catch (NumberFormatException e) {}
         }
     }
     
@@ -165,8 +170,13 @@ public class Satisfaccion {
      * @param sex el sexo del usuario
      */
     private void transformSex (int[] userValues, String sex) {
-        if (sex.equals(FieldsValues.MAN_VALUE)) userValues[Integer.parseInt(FieldsValues.MAN_VALUE)-1]++;
-        else userValues[Integer.parseInt(FieldsValues.WOMAN_VALUE)-1]++;
+        //Hay que eliminar las comillas dobles que vienen ahora con la nueva versión de Moodle 3.6
+        sex = sex.replace("\"", "");
+        try {
+            if (sex.equals(FieldsValues.MAN_VALUE)) userValues[Integer.parseInt(FieldsValues.MAN_VALUE)-1]++;
+            else userValues[Integer.parseInt(FieldsValues.WOMAN_VALUE)-1]++;
+        }
+        catch (NumberFormatException e){}
     }
     
     /**
@@ -176,10 +186,17 @@ public class Satisfaccion {
      * @param resp listado de respuestas del usuario
      */
     private void transformKnow (int[] userValueKnow, int[] userValueStudent, String[] resp) {
-        //Primero tratamos como conoció el centro
-        userValueKnow[Integer.parseInt(resp[0].split(" ")[0])-1]++;
-        //Después tratamos como se valora como estudiante
-        userValueStudent[Integer.parseInt(resp[2].split(" ")[0])-1]++;
+        //Hay que eliminar las comillas dobles que vienen ahora con la nueva versión de Moodle 3.6
+        for (int i = 0; i < resp.length; i++) {
+            if (resp[i]!=null) resp[i] = resp[i].replace("\"", "");
+        }
+        try {
+            //Primero tratamos como conoció el centro
+            userValueKnow[Integer.parseInt(resp[0].split(" ")[0])-1]++;
+            //Después tratamos como se valora como estudiante
+            userValueStudent[Integer.parseInt(resp[2].split(" ")[0])-1]++;
+        } 
+        catch (NumberFormatException e) {}
     }
     
     /**
@@ -189,20 +206,27 @@ public class Satisfaccion {
      * @param resp respuestas del usuario
      */
     private void transformOpinion (ArrayList<DataOrderBean> userValuesBetter, ArrayList<DataOrderBean> userValuesPlease, String[] resp) {
+         //Hay que eliminar las comillas dobles que vienen ahora con la nueva versión de Moodle 3.6
+        for (int i = 0; i < resp.length; i++) {
+            if (resp[i]!=null) resp[i] = resp[i].replace("\"", "");
+        }
         for (int i = 0; i < resp.length; i++) {
             //Aspectos a mejorar
-            if (i<3) {
-                if (resp[i]!= null && !resp[i].trim().isEmpty()) {
-                    if (userValuesBetter.contains(new DataOrderBean(resp[i].trim()))) userValuesBetter.get(userValuesBetter.indexOf(new DataOrderBean(resp[i].trim()))).increment();
-                    else userValuesBetter.add(new DataOrderBean(resp[i].trim()));
+            try {
+                if (i<3) {
+                    if (resp[i]!= null && !resp[i].trim().isEmpty()) {
+                        if (userValuesBetter.contains(new DataOrderBean(resp[i].trim()))) userValuesBetter.get(userValuesBetter.indexOf(new DataOrderBean(resp[i].trim()))).increment();
+                        else userValuesBetter.add(new DataOrderBean(resp[i].trim()));
+                    }
+                }
+                else {
+                    if (resp[i]!= null && !resp[i].trim().isEmpty()) {
+                        if (userValuesPlease.contains(new DataOrderBean(resp[i].trim()))) userValuesPlease.get(userValuesPlease.indexOf(new DataOrderBean(resp[i].trim()))).increment();
+                        else userValuesPlease.add(new DataOrderBean(resp[i].trim()));
+                    }
                 }
             }
-            else {
-                if (resp[i]!= null && !resp[i].trim().isEmpty()) {
-                    if (userValuesPlease.contains(new DataOrderBean(resp[i].trim()))) userValuesPlease.get(userValuesPlease.indexOf(new DataOrderBean(resp[i].trim()))).increment();
-                    else userValuesPlease.add(new DataOrderBean(resp[i].trim()));
-                }
-            }
+            catch (NumberFormatException e) {}
         }
     }
     

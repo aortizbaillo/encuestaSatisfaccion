@@ -54,6 +54,7 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
+        jTextFieldExcelGenerica.setText("/Users/antonio/Downloads/GENERICA_v2018_WEB.xls");
         jTextFieldExcelGenerica.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextFieldExcelGenericaActionPerformed(evt);
@@ -61,6 +62,8 @@ public class Main extends javax.swing.JFrame {
         });
 
         jLabelCarpetaCSVs.setText("Carpeta CSVs");
+
+        jTextFieldCarpetaCSVs.setText("/Users/antonio/Downloads/datos2");
 
         jButtonCarpetaCSVs.setText("Buscar");
         jButtonCarpetaCSVs.addActionListener(new java.awt.event.ActionListener() {
@@ -70,6 +73,8 @@ public class Main extends javax.swing.JFrame {
         });
 
         jLabelCarpetaDestino.setText("Carpeta Destino");
+
+        jTextFieldCarpetaDestino.setText("/Users/antonio/Downloads/generados");
 
         jButtonCarpetaDestino.setText("Buscar");
         jButtonCarpetaDestino.addActionListener(new java.awt.event.ActionListener() {
