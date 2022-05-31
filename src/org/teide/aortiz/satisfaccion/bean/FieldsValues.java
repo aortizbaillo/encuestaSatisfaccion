@@ -11,22 +11,20 @@ package org.teide.aortiz.satisfaccion.bean;
  */
 public interface FieldsValues {
     
-    public static final int DATE_FIELD = 1;
+    public static final int DATE_FIELD = 0;
     public static final int NAME_FIELD = 4;
-    public static final int START_RESP = 10;
-    public static final int END_RESP = 54;
-    public static final int SEX = 9;
-    public static final int START_KNOW = 54;
-    public static final int END_KNOW = 57;
-    public static final int START_OPINION = 57;
-    public static final int END_OPINION = 63;
+    public static final int START_RESP = 4; //Nueva versión TEIDE 2022
+    public static final int END_RESP = 48; //Nueva versión TEIDE 2022
+    public static final int SEX = 3; //Nueva versión TEIDE 2022
+    public static final int START_KNOW = 48; //Nueva versión TEIDE 2022
+    public static final int END_KNOW = 51; //Nueva versión TEIDE 2022
+    public static final int START_OPINION = 51; //Nueva versión TEIDE 2022
+    public static final int END_OPINION = 58; //Nueva versión TEIDE 2022
     
     public static final int USER_VALUES_ROWS = 22;
-    public static final int USER_VALUES_COLS = 12;
+    public static final int USER_VALUES_COLS = 10;
     public static final int[] SATISFACTION_COLS = {8,0,2,4,6};
-    public static final int SATISFACTION_COL = 10;
     public static final int[] IMPORTANCE_COLS = {9,1,3,5,7};
-    public static final int IMPORTANCE_COL = 11;
     public static String MAN_VALUE = "1";
     public static String WOMAN_VALUE = "2";
     public static final int CENTER_VALUES = 6;
@@ -44,5 +42,5 @@ public interface FieldsValues {
     public static final int[] BETTER_OPINION_COUNT = {54,12};
     public static final int[] PLEASE_OPINION = {76,0};
     public static final int[] PLEASE_OPINION_COUNT = {76,12};
-    public static final int N_MAX_OPINION = 15; 
+    public static final int N_MAX_OPINION = 10; 
 }

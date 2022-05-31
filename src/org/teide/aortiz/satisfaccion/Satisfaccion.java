@@ -22,6 +22,7 @@ import jxl.read.biff.BiffException;
 import jxl.write.Label;
 import jxl.write.WritableSheet;
 import jxl.write.Number;
+import jxl.write.WritableCell;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
 import org.teide.aortiz.satisfaccion.bean.CourseBean;
@@ -73,10 +74,14 @@ public class Satisfaccion {
         //La primera línea no hace falta que la leamos porque lleva las cabeceras
         br.readLine();
         while ((line=br.readLine())!=null) {
+            //Lo primero que haremos será verificar si la cadena cotiene alguna coma en los comentarios del usuario para ver si 
+            //la eliminamos para evitar problemas.
+            line = formatOneRow(line);        
+            
             String[] results = line.split(CARACTER_CORTE);
             //Para el primer alumno obtendremos la fecha y el nombre del grupo
             if (obtainDateAndName) {
-                date = results[FieldsValues.DATE_FIELD].split(CARACTER_CORTE)[0];
+                date = results[FieldsValues.DATE_FIELD].split(" ")[0].substring(1);
                 name = new File(inputCSVfilename).getName().split("\\.")[0];
                 obtainDateAndName = false;
             }
@@ -104,11 +109,39 @@ public class Satisfaccion {
     }
     
     /**
+     * Este método permite eliminar las comillas dobles existentes en alguno de los campos en el caso que hubiera alguna coma entre los valores
+     * Lo que haremos será meter un ; en su lugar y que así no haya problemas con los campos.
+     * @param cadena
+     * @return 
+     */
+    private String formatOneRow (String cadena) {
+        String[] campos = cadena.split(CARACTER_CORTE);
+        char[] array = cadena.toCharArray();
+        for (int i = 0; i < campos.length; i++) {
+            String campo = campos[i];
+            //Si el campo empieza por comillas dobles pero no termina por comillas dobles, hay que quitar una coma
+            if (campo.startsWith("\"") && !campo.endsWith("\"")) {
+                //Buscamos la posición de esa coma para poder reemplazarla. Pueden existir varias hasta encontrar las comillas dobles
+                String campoNext;
+                do {
+                    int pos = cadena.indexOf(campo)+campo.length();
+                    array[pos] = ';';
+                    campo = campos[++i];
+                }
+                while (!campo.endsWith("\"")); 
+            }
+        }
+        return String.valueOf(array);
+    }
+    
+    /**
      * Permite extraer las respuestas de un usuario
      * @param values representa una respuesta completa de un usuario
      * @return todas las respuestas de satisfacción e importancia del usuario
      */
     private String[] getResp (String[] values) {
+        String[] datos = Arrays.copyOfRange(values, FieldsValues.START_RESP, FieldsValues.END_RESP);
+//        return datos;
         return Arrays.copyOfRange(values, FieldsValues.START_RESP, FieldsValues.END_RESP);
     }
     
@@ -118,7 +151,7 @@ public class Satisfaccion {
      * @return el sexo del usuario, 1 hombre 2 mujer
      */
     private String getSex (String[] values) {
-        return values[FieldsValues.SEX].split(" ")[0];
+        return values[FieldsValues.SEX].split(" ")[0].replace("\"", "");
     }
     
     /**
@@ -150,14 +183,17 @@ public class Satisfaccion {
         for (int i=0;i<resp.length;i++) {
             try {
                 if (i%2==0) {
-                    //Escribimos la satisfacción
+                    //Escribimos la satisfacción. Si viene un -1 es un NS/NC, lo cambiamos a la columna 0 para que se vaya luego
+                    //a la columna indicada (8 o 9)
+                    if (resp[i].equals("-1")) resp[i] = "0"; 
                     userValues[row][FieldsValues.SATISFACTION_COLS[Integer.parseInt(resp[i])]]++;
-                    userValues[row][FieldsValues.SATISFACTION_COL]++;
+                    //userValues[row][FieldsValues.SATISFACTION_COL]++;
                 }
                 else {
                     //Escribimos la importancia
-                    userValues[row][FieldsValues.IMPORTANCE_COLS[Integer.parseInt(resp[i])]]++;
-                    userValues[row++][FieldsValues.IMPORTANCE_COL]++;
+                    if (resp[i].equals("-1")) resp[i] = "0"; 
+                    userValues[row++][FieldsValues.IMPORTANCE_COLS[Integer.parseInt(resp[i])]]++;
+                    //userValues[row++][FieldsValues.IMPORTANCE_COL]++;
                 }
             }
             catch (NumberFormatException e) {}
@@ -171,12 +207,10 @@ public class Satisfaccion {
      */
     private void transformSex (int[] userValues, String sex) {
         //Hay que eliminar las comillas dobles que vienen ahora con la nueva versión de Moodle 3.6
+        //Hay que eliminar las comillas dobles que vienen ahora con la nueva versión de Moodle 3.6
         sex = sex.replace("\"", "");
-        try {
-            if (sex.equals(FieldsValues.MAN_VALUE)) userValues[Integer.parseInt(FieldsValues.MAN_VALUE)-1]++;
-            else userValues[Integer.parseInt(FieldsValues.WOMAN_VALUE)-1]++;
-        }
-        catch (NumberFormatException e){}
+        if (sex.equals(FieldsValues.MAN_VALUE)) userValues[Integer.parseInt(FieldsValues.MAN_VALUE)-1]++;
+        else userValues[Integer.parseInt(FieldsValues.WOMAN_VALUE)-1]++;
     }
     
     /**
@@ -190,13 +224,14 @@ public class Satisfaccion {
         for (int i = 0; i < resp.length; i++) {
             if (resp[i]!=null) resp[i] = resp[i].replace("\"", "");
         }
-        try {
-            //Primero tratamos como conoció el centro
-            userValueKnow[Integer.parseInt(resp[0].split(" ")[0])-1]++;
-            //Después tratamos como se valora como estudiante
-            userValueStudent[Integer.parseInt(resp[2].split(" ")[0])-1]++;
-        } 
-        catch (NumberFormatException e) {}
+        /*System.out.println("------------- valores ------------");
+        System.out.println(resp[0]);
+        System.out.println(resp[2]);
+        System.out.println("----------------------------------");*/
+        //Primero tratamos como conoció el centro
+        userValueKnow[Integer.parseInt(resp[0].split(" ")[0])-1]++;
+        //Después tratamos como se valora como estudiante
+        userValueStudent[Integer.parseInt(resp[2].split(" ")[0])-1]++;
     }
     
     /**
@@ -212,21 +247,18 @@ public class Satisfaccion {
         }
         for (int i = 0; i < resp.length; i++) {
             //Aspectos a mejorar
-            try {
-                if (i<3) {
-                    if (resp[i]!= null && !resp[i].trim().isEmpty()) {
-                        if (userValuesBetter.contains(new DataOrderBean(resp[i].trim()))) userValuesBetter.get(userValuesBetter.indexOf(new DataOrderBean(resp[i].trim()))).increment();
-                        else userValuesBetter.add(new DataOrderBean(resp[i].trim()));
-                    }
-                }
-                else {
-                    if (resp[i]!= null && !resp[i].trim().isEmpty()) {
-                        if (userValuesPlease.contains(new DataOrderBean(resp[i].trim()))) userValuesPlease.get(userValuesPlease.indexOf(new DataOrderBean(resp[i].trim()))).increment();
-                        else userValuesPlease.add(new DataOrderBean(resp[i].trim()));
-                    }
+            if (i<3) {
+                if (resp[i]!= null && !resp[i].trim().isEmpty()) {
+                    if (userValuesBetter.contains(new DataOrderBean(resp[i].trim()))) userValuesBetter.get(userValuesBetter.indexOf(new DataOrderBean(resp[i].trim().replace("&nbsp;", " ")))).increment();
+                    else userValuesBetter.add(new DataOrderBean(resp[i].trim().replace("&nbsp;", " ")));
                 }
             }
-            catch (NumberFormatException e) {}
+            else {
+                if (resp[i]!= null && !resp[i].trim().isEmpty()) {
+                    if (userValuesPlease.contains(new DataOrderBean(resp[i].trim()))) userValuesPlease.get(userValuesPlease.indexOf(new DataOrderBean(resp[i].trim().replace("&nbsp;", " ")))).increment();
+                    else userValuesPlease.add(new DataOrderBean(resp[i].trim().replace("&nbsp;", " ")));
+                }
+            }
         }
     }
     
@@ -235,12 +267,15 @@ public class Satisfaccion {
      * @param values listado de valores de los usuarios
      */
     private void transformAll (CourseBean cb, String inputXLSfilename, String outputXLSfilename) throws IOException, BiffException, WriteException {
+        //int[][] userRespSatisfaccion = new int[FieldsValues.USER_VALUES_ROWS][cb.getList().size()];
+        //int[][] userRespImportancia = new int[FieldsValues.USER_VALUES_ROWS][cb.getList().size()];
         int[][] userResp = new int[FieldsValues.USER_VALUES_ROWS][FieldsValues.USER_VALUES_COLS];
         int[] sex = new int[2];
         int[] centerKnow = new int[FieldsValues.CENTER_VALUES];
         int[] studentKnow = new int[FieldsValues.STUDENT_VALUES];
         ArrayList<DataOrderBean> alBetter = new ArrayList<>();
         ArrayList<DataOrderBean> alPlease = new ArrayList<>();
+        int col = 0;
         for (DataBean value : cb.getList()) {
             transformResp(userResp, value.getResp());
             transformSex(sex, value.getSex());
@@ -257,6 +292,16 @@ public class Satisfaccion {
             System.out.println("");
         }
         System.out.println("--------------------------------");
+        /*  
+        for (int i = 0; i < userRespImportancia.length; i++) {
+            for (int j = 0; j < userRespImportancia[i].length; j++) {
+                System.out.print(userRespImportancia[i][j]+" ");
+            }
+            System.out.println("");
+        }
+        System.out.println("--------------------------------");
+        
+        /*
         
         System.out.println("SEX: "+sex[0]+" - "+sex[1]);
         System.out.println("Center: ");
@@ -312,19 +357,18 @@ public class Satisfaccion {
         WritableSheet sheet = outputXLS.getSheet(1);
         
         //Escribimos nombre del ciclo y fecha
-        ((Label)sheet.getWritableCell(FieldsValues.NAME_CORDS[1],FieldsValues.NAME_CORDS[0])).setString(name);
-        ((Label)sheet.getWritableCell(FieldsValues.DATE_CORDS[1],FieldsValues.DATE_CORDS[0])).setString(date);
+        sheet.addCell((WritableCell) new Label (FieldsValues.NAME_CORDS[1],FieldsValues.NAME_CORDS[0], name));
+        sheet.addCell((WritableCell) new Label (FieldsValues.DATE_CORDS[1],FieldsValues.DATE_CORDS[0], date));
         
         //Escribimos número de hombres, mujeres y total de encuestados
-        ((Number)sheet.getWritableCell(FieldsValues.MAN_CORDS[1],FieldsValues.MAN_CORDS[0])).setValue(sex[0]);
-        ((Number)sheet.getWritableCell(FieldsValues.WOMAN_CORDS[1],FieldsValues.WOMAN_CORDS[0])).setValue(sex[1]);
-        ((Number)sheet.getWritableCell(FieldsValues.PEOPLE_CORDS[1],FieldsValues.PEOPLE_CORDS[0])).setValue(sex[0]+sex[1]);
+        sheet.addCell((WritableCell) new Number (FieldsValues.MAN_CORDS[1],FieldsValues.MAN_CORDS[0], sex[0]));
+        sheet.addCell((WritableCell) new Number (FieldsValues.WOMAN_CORDS[1],FieldsValues.WOMAN_CORDS[0], sex[1]));
+        sheet.addCell((WritableCell) new Number (FieldsValues.PEOPLE_CORDS[1],FieldsValues.PEOPLE_CORDS[0], sex[0]+sex[1]));
         
-        //Escribimos las respuestas de los clientes
         int row = FieldsValues.START_USER_RESP[0], col = FieldsValues.START_USER_RESP[1];
         for (int i = 0; i < userResp.length; i++) {
-            for (int j = 0; j < userResp[i].length-2; j++) {
-                ((Number)sheet.getWritableCell(col+j,row+i)).setValue(userResp[i][j]);
+            for (int j = 0; j < userResp[i].length; j++) {
+                sheet.addCell((WritableCell) new Number(col+j,row+i,userResp[i][j]));
             }
         }
         
@@ -332,12 +376,12 @@ public class Satisfaccion {
         row = FieldsValues.CENTER_KNOW[0];
         col = FieldsValues.CENTER_KNOW[1];
         for (int i = 0; i < centerKnow.length; i++) {
-            ((Number)sheet.getWritableCell(col,row+i)).setValue(centerKnow[i]);
+            sheet.addCell((WritableCell) new Number (col,row+i, centerKnow[i]));
         }
         row = FieldsValues.STUDENT_KNOW[0];
         col = FieldsValues.STUDENT_KNOW[1];
         for (int i = 0; i < studentKnow.length; i++) {
-            ((Number)sheet.getWritableCell(col,row+i)).setValue(studentKnow[i]);
+            sheet.addCell((WritableCell) new Number (col,row+i, studentKnow[i]));
         }     
         
         //Por último escribimos las preguntas abiertas
@@ -347,8 +391,8 @@ public class Satisfaccion {
         int colN = FieldsValues.BETTER_OPINION_COUNT[1];
         Collections.sort(alBetter);
         for (int i = 0; i < alBetter.size() && i < FieldsValues.N_MAX_OPINION; i++) {
-            ((Label)sheet.getWritableCell(col,row+i)).setString(alBetter.get(i).getResp());
-            ((Number)sheet.getWritableCell(colN,rowN+i)).setValue(alBetter.get(i).getnResp());
+            sheet.addCell((WritableCell) new Label (col,row+i, alBetter.get(i).getResp()));
+            sheet.addCell((WritableCell) new Number (colN,rowN+i, alBetter.get(i).getnResp()));
         }
         row = FieldsValues.PLEASE_OPINION[0];
         col = FieldsValues.PLEASE_OPINION[1];
@@ -356,8 +400,9 @@ public class Satisfaccion {
         colN = FieldsValues.PLEASE_OPINION_COUNT[1];
         Collections.sort(alPlease);
         for (int i = 0; i < alPlease.size() && i < FieldsValues.N_MAX_OPINION; i++) {
-            ((Label)sheet.getWritableCell(col,row+i)).setString(alPlease.get(i).getResp());
-            ((Number)sheet.getWritableCell(colN,rowN+i)).setValue(alPlease.get(i).getnResp());
+            sheet.addCell((WritableCell) new Label (col,row+i, alPlease.get(i).getResp()));
+            sheet.addCell((WritableCell) new Number (colN,rowN+i, alPlease.get(i).getnResp()));
+
         }
        
         //Escribimos todos los valores en la Excel    
